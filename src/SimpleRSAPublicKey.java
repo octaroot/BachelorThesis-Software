@@ -7,18 +7,26 @@ import java.security.interfaces.RSAPublicKey;
  */
 public class SimpleRSAPublicKey implements RSAPublicKey
 {
-	private BigInteger p, q;
+	private BigInteger p, q, e;
+
+	SimpleRSAPublicKey(BigInteger p, BigInteger q, BigInteger e)
+	{
+		this.p = p;
+		this.q = q;
+		this.e = e;
+	}
 
 	SimpleRSAPublicKey(BigInteger p, BigInteger q)
 	{
 		this.p = p;
 		this.q = q;
+		this.e = null;
 	}
 
 	@Override
 	public BigInteger getPublicExponent()
 	{
-		return null;
+		return e;
 	}
 
 	@Override
