@@ -25,11 +25,9 @@ public class NearPrimes implements RSAAttack
 		System.out.println("Testing n = " + n);
 		System.out.println("Squared n to " + guess);
 
-		if (!guess.isProbablePrime(32))
-		{
-			guess = guess.nextProbablePrime();
-			System.out.println("Wasn't prime, using " + guess + " instead");
-		}
+		//ensures a odd number
+		guess = guess.setBit(0);
+		System.out.println("Starting at " + guess + " and counting down");
 
 		long startTime = System.nanoTime();
 
@@ -41,7 +39,7 @@ public class NearPrimes implements RSAAttack
 				System.out.println("p=" + n.divide(guess) + ",q=" + guess);
 				run = false;
 			}
-			guess = guess.add(TWO);
+			guess = guess.subtract(TWO);
 		}
 
 		long estimatedTime = System.nanoTime() - startTime;
