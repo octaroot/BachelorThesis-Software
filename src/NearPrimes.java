@@ -7,7 +7,34 @@ import java.security.interfaces.RSAPublicKey;
  */
 public class NearPrimes implements RSAAttack
 {
+	private static final BigInteger TWO = BigInteger.valueOf(2);
 	private volatile boolean run;
+
+	public static BigInteger sqrt(BigInteger n)
+	{
+		if (n.signum() >= 0)
+		{
+			final int bitLength = n.bitLength();
+			BigInteger root = BigInteger.ONE.shiftLeft(bitLength / 2);
+
+			while (!isSqrt(n, root))
+			{
+				root = root.add(n.divide(root)).divide(TWO);
+			}
+			return root;
+		}
+		else
+		{
+			throw new ArithmeticException("square root of negative number");
+		}
+	}
+
+	private static boolean isSqrt(BigInteger n, BigInteger root)
+	{
+		final BigInteger lowerBound = root.pow(2);
+		final BigInteger upperBound = root.add(BigInteger.ONE).pow(2);
+		return lowerBound.compareTo(n) <= 0 && n.compareTo(upperBound) < 0;
+	}
 
 	public void test(BigInteger p, BigInteger q)
 	{
@@ -18,28 +45,30 @@ public class NearPrimes implements RSAAttack
 	public void begin(RSAPublicKey certificate)
 	{
 		run = true;
-		final BigInteger TWO = BigInteger.valueOf(2);
 		final BigInteger n = certificate.getModulus();
-		BigInteger guess = sqrt(n);
+		BigInteger guess = sqrt(n), temp;
 
 		System.out.println("Testing n = " + n);
 		System.out.println("Squared n to " + guess);
 
-		//ensures a odd number
-		guess = guess.setBit(0);
+		if (guess.pow(2).compareTo(n) < 0)
+			guess = guess.add(BigInteger.ONE);
+
+		temp = guess.pow(2).subtract(n);
 		System.out.println("Starting at " + guess + " and counting down");
 
 		long startTime = System.nanoTime();
 
 		while (run)
 		{
-			if (n.remainder(guess).equals(BigInteger.ZERO))
+			if (sqrt(temp).pow(2).equals(temp))
 			{
 				System.out.println("lol 0wn3d");
-				System.out.println("p=" + n.divide(guess) + ",q=" + guess);
+				System.out.println("p=" + guess.subtract(sqrt(temp)) + ",q=" + guess.add(sqrt(temp)));
 				run = false;
 			}
-			guess = guess.subtract(TWO);
+			guess = guess.add(BigInteger.ONE);
+			temp = guess.pow(2).subtract(n);
 		}
 
 		long estimatedTime = System.nanoTime() - startTime;
@@ -51,18 +80,5 @@ public class NearPrimes implements RSAAttack
 	public void stop()
 	{
 		run = false;
-	}
-
-	BigInteger sqrt(BigInteger n)
-	{
-		BigInteger a = BigInteger.ONE;
-		BigInteger b = new BigInteger(n.shiftRight(5).add(new BigInteger("8")).toString());
-		while (b.compareTo(a) >= 0)
-		{
-			BigInteger mid = new BigInteger(a.add(b).shiftRight(1).toString());
-			if (mid.multiply(mid).compareTo(n) > 0) b = mid.subtract(BigInteger.ONE);
-			else a = mid.add(BigInteger.ONE);
-		}
-		return a.subtract(BigInteger.ONE);
 	}
 }
