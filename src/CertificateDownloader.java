@@ -1,12 +1,10 @@
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLProtocolException;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 
 /**
@@ -17,7 +15,9 @@ public class CertificateDownloader
 {
 	public static void main(String[] args) throws Exception
 	{
-		System.setProperty("javax.net.ssl.trustStore", "/home/martin/Desktop/CTU-BP/keystore.jks");
+		URL url = CertificateDownloader.class.getResource("keystore.jks");
+
+		System.setProperty("javax.net.ssl.trustStore", url.getPath());
 		System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
 
 		//sni.velox.ch nebude s false fungovat
@@ -25,7 +25,8 @@ public class CertificateDownloader
 		//System.setProperty("jsse.enableSNIExtension", "false");
 
 
-		URL destinationURL = new URL("https://crypto.stackexchange.com");
+		//pro testovani se muze hodit https://badssl.com/
+		URL destinationURL = new URL("https://crypto.stackexchange.com/");
 		HttpsURLConnection conn = (HttpsURLConnection) destinationURL.openConnection();
 		try
 		{
@@ -34,10 +35,10 @@ public class CertificateDownloader
 		catch (Exception ex)
 		{
 			//Zajima nas jen ta prvni vyjimka
-			/*while (ex.getCause() != null && !ex.getCause().equals(ex))
+			while (ex.getCause() != null && !ex.getCause().equals(ex))
 			{
 				ex = (Exception)ex.getCause();
-			}*/
+			}
 
 			//http://stackoverflow.com/questions/7615645/ssl-handshake-alert-unrecognized-name-error-since-upgrade-to-java-1-7-0
 			if (ex.getMessage().equals("handshake alert:  unrecognized_name"))
@@ -51,37 +52,58 @@ public class CertificateDownloader
 
 		if (certs.length > 0)
 		{
+			//zajima nas jen peer cert, chain jde mimo
 			Certificate cert = certs[0];
 			if (cert.getPublicKey() instanceof RSAPublicKey)
 			{
-				System.out.println("Modul: " + ((RSAPublicKey) cert.getPublicKey()).getModulus());
+				System.out.println("Modulus: " + ((RSAPublicKey) cert.getPublicKey()).getModulus());
+				System.out.println("Modulus size: " + ((RSAPublicKey) cert.getPublicKey()).getModulus().bitLength());
 				System.out.println("Public Exponent: " + ((RSAPublicKey) cert.getPublicKey()).getPublicExponent());
 			}
 			else
 			{
-				System.out.println("Neni RSA cert: " + cert.getPublicKey().getAlgorithm());
+				System.out.println("Not a RSA-based cert: " + cert.getPublicKey().getAlgorithm());
 			}
-			//System.out.println("################################################################");
-			//System.out.println("Certificate is: " + cert);
-			if (cert instanceof X509Certificate)
-			{
-				System.out.println("Signature Algo:" + ((X509Certificate) cert).getSigAlgName());
-				System.out.println("Issuer DN:" + ((X509Certificate) cert).getIssuerDN());
-				System.out.println("Subject DN:" + ((X509Certificate) cert).getSubjectDN());
-				try
-				{
-					((X509Certificate) cert).checkValidity();
-					System.out.println("Certificate is active for current date");
-				}
-				catch (CertificateExpiredException cee)
-				{
-					System.out.println("Certificate is expired");
-				}
-			}
-			else
+
+			//vsechny certy jsou x509 certy ... https://bugzilla.mozilla.org/show_bug.cgi?id=290029
+			//ff jiny ani nepodporuje. simulujeme chovani ff (via truststore)
+			if (!(cert instanceof X509Certificate))
 			{
 				System.err.println("Unknown certificate type: " + cert);
 			}
+			else
+			{
+				System.out.println("Signature Algo: " + ((X509Certificate) cert).getSigAlgName());
+				System.out.println("Issuer DN: " + ((X509Certificate) cert).getIssuerDN());
+				System.out.println("Subject DN: " + ((X509Certificate) cert).getSubjectDN());
+				System.out.println("Thumbprint: " + getThumbPrint((X509Certificate) cert));
+			}
 		}
+	}
+	public static String getThumbPrint(X509Certificate cert)
+			throws NoSuchAlgorithmException, CertificateEncodingException
+	{
+		MessageDigest md = MessageDigest.getInstance("SHA-1");
+		byte[] der = cert.getEncoded();
+		md.update(der);
+		byte[] digest = md.digest();
+		return hexify(digest);
+
+	}
+
+	public static String hexify (byte bytes[]) {
+
+		char[] hexDigits = {'0', '1', '2', '3', '4', '5', '6', '7',
+		                    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+		StringBuilder buf = new StringBuilder(bytes.length * 2);
+
+		for (byte aByte : bytes)
+		{
+			buf.append(hexDigits[(aByte & 0xf0) >> 4]);
+			buf.append(hexDigits[aByte & 0x0f]);
+		}
+
+		return buf.toString();
 	}
 }
