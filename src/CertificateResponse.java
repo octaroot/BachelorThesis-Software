@@ -32,18 +32,8 @@ public class CertificateResponse
 		return certificate;
 	}
 
-	public void setCertificate(X509Certificate certificate)
-	{
-		this.certificate = certificate;
-	}
-
 	public Exception getException()
 	{
 		return exception;
-	}
-
-	public void setException(Exception exception)
-	{
-		this.exception = exception;
 	}
 }
