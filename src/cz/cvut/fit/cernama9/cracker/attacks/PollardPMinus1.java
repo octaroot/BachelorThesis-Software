@@ -44,6 +44,7 @@ public class PollardPMinus1 implements RSAAttack
 			if (d.equals(BigInteger.ONE))
 			{
 				b++;
+				//if (b % 100 == 0) System.out.println("b = " + b);
 				k = k.multiply(BigInteger.valueOf(b));
 				continue;
 			}
