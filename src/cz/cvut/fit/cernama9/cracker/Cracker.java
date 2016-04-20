@@ -1,10 +1,16 @@
+package cz.cvut.fit.cernama9.cracker;
+
+import cz.cvut.fit.cernama9.cracker.attacks.NearPrimes;
+import cz.cvut.fit.cernama9.cracker.attacks.PollardPMinus1;
+import cz.cvut.fit.cernama9.cracker.attacks.Wiener;
+
 import java.math.BigInteger;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 10.2.16.
  */
-public class BPThesis
+public class Cracker
 {
 	public static void main(String[] args)
 	{

@@ -1,9 +1,14 @@
+package cz.cvut.fit.cernama9.cracker.attacks;
+
+import cz.cvut.fit.cernama9.cracker.RSAAttack;
+import cz.cvut.fit.cernama9.cracker.SimpleRSAPublicKey;
+
 import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Random;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 26.3.16.
  */
 public class PollardPMinus1 implements RSAAttack

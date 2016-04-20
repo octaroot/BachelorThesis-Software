@@ -1,7 +1,9 @@
+package cz.cvut.fit.cernama9.cracker;
+
 import java.security.interfaces.RSAPublicKey;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 10.2.16.
  */
 public interface RSAAttack

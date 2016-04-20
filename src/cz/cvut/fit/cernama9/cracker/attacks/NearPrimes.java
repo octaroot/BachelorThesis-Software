@@ -1,8 +1,13 @@
+package cz.cvut.fit.cernama9.cracker.attacks;
+
+import cz.cvut.fit.cernama9.cracker.RSAAttack;
+import cz.cvut.fit.cernama9.cracker.SimpleRSAPublicKey;
+
 import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 10.2.16.
  */
 public class NearPrimes implements RSAAttack

@@ -1,7 +1,9 @@
+package cz.cvut.fit.cernama9.scanner;
+
 import java.security.cert.X509Certificate;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 19.4.16.
  */
 public class CertificateResponse
