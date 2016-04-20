@@ -3,7 +3,7 @@ package cz.cvut.fit.cernama9.cracker.utilities;
 import java.math.BigInteger;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 20.4.16.
  */
 public class AttackResult

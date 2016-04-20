@@ -9,7 +9,7 @@ import java.math.BigInteger;
 import static org.junit.Assert.*;
 
 /**
- * @author martin (cernama9@fit.cvut.cz)
+ * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 20.4.16.
  */
 public class WienerTest
