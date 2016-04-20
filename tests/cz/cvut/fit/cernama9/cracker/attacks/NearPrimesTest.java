@@ -29,4 +29,19 @@ public class NearPrimesTest
 		assertNull(result.getD());
 	}
 
+	@Test
+	public void identicalPrimes()
+	{
+		NearPrimes np = new NearPrimes();
+		BigInteger p = BigInteger.valueOf(17);
+
+		np.test(p,p);
+		AttackResult result = np.getResult();
+
+		assertNotNull(result);
+		assertEquals(p, result.getP());
+		assertEquals(p, result.getQ());
+		assertNull(result.getD());
+	}
+
 }

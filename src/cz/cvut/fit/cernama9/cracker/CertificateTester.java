@@ -28,7 +28,7 @@ public class CertificateTester
 
 		System.out.println("===\nNearPrimes:");
 
-		np.test(p, q);
+		//np.test(p, q);
 
 		//$ openssl prime -generate -bits 32
 		//$ factor 1419262

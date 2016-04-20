@@ -29,8 +29,7 @@ public class NearPrimes implements RSAAttack
 		final BigInteger n = certificate.getModulus();
 		BigInteger guess = BigIntegerMath.sqrt(n, RoundingMode.CEILING), temp;
 
-		System.out.println("Testing n = " + n);
-		System.out.println("Squared n to " + guess);
+		System.out.println("Testing n ~ " + n.bitLength() + " bits");
 
 		temp = guess.pow(2).subtract(n);
 		System.out.println("Starting at " + guess + " and counting down");
