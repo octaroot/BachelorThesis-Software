@@ -22,9 +22,9 @@ public class CertificateTester
 		BigInteger p, q, e;
 
 		//$ openssl prime -generate -bits 64
-		p = new BigInteger("14704793099225466593");
-		q = new BigInteger("14704787767017391013");
-		//(43th) 44. bit se lisi (tedy cca cuberoot(n))
+		p = new BigInteger("18150056386076042843");
+		q = new BigInteger("18150098467096444049");
+		//(49th) 50. bit se lisi (tedy o bit vic nez n^(3/4))
 
 		System.out.println("===\nNearPrimes:");
 
