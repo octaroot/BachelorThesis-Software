@@ -1,6 +1,7 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
 import com.google.common.math.BigIntegerMath;
+import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
 import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
@@ -59,6 +60,12 @@ public class PollardPMinus1 implements RSAAttack
 		long estimatedTime = System.nanoTime() - startTime;
 		System.out.println("Cracking took us " + estimatedTime / 1e9 + "s");
 
+	}
+
+	@Override
+	public AttackResult getResult()
+	{
+		return null;
 	}
 
 	@Override

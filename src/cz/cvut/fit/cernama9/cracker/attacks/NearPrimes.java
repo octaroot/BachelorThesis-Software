@@ -1,6 +1,7 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
 import com.google.common.math.BigIntegerMath;
+import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
 import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
@@ -14,6 +15,7 @@ import java.security.interfaces.RSAPublicKey;
 public class NearPrimes implements RSAAttack
 {
 	private volatile boolean run;
+	private AttackResult result = null;
 
 	public void test(BigInteger p, BigInteger q)
 	{
@@ -39,8 +41,11 @@ public class NearPrimes implements RSAAttack
 		{
 			if (BigIntegerMath.sqrt(temp, RoundingMode.DOWN).pow(2).equals(temp))
 			{
-				System.out.println("lol 0wn3d");
-				System.out.println("p=" + guess.subtract(BigIntegerMath.sqrt(temp, RoundingMode.UNNECESSARY)) + ",q=" + guess.add(BigIntegerMath.sqrt(temp, RoundingMode.UNNECESSARY)));
+				final BigInteger b = BigIntegerMath.sqrt(temp, RoundingMode.UNNECESSARY),
+						p = guess.subtract(b),
+						q = guess.add(b);
+				result = new AttackResult(p, q);
+				System.out.println("Success!");
 				run = false;
 			}
 			guess = guess.add(BigInteger.ONE);
@@ -50,6 +55,12 @@ public class NearPrimes implements RSAAttack
 		long estimatedTime = System.nanoTime() - startTime;
 		System.out.println("Cracking took us " + estimatedTime / 1e9 + "s");
 
+	}
+
+	@Override
+	public AttackResult getResult()
+	{
+		return result;
 	}
 
 	@Override

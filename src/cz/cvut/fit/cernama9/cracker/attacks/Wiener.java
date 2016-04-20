@@ -1,5 +1,6 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
+import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
 import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
@@ -14,6 +15,7 @@ import java.util.List;
 public class Wiener implements RSAAttack
 {
 	private volatile boolean run;
+	private AttackResult result = null;
 
 	public void test(SimpleRSAPublicKey pkey)
 	{
@@ -70,8 +72,9 @@ public class Wiener implements RSAAttack
 
 			if (message.equals(decipher))
 			{
-				System.out.println("lol 0wn3d");
-				System.out.println("d=" + denominators.get(i));
+				//System.out.println("lol 0wn3d");
+				//System.out.println("d=" + denominators.get(i));
+				result = new AttackResult(denominators.get(i));
 				run = false;
 			}
 
@@ -82,6 +85,13 @@ public class Wiener implements RSAAttack
 		System.out.println("Cracking took us " + estimatedTime / 1e9 + "s");
 
 	}
+
+	@Override
+	public AttackResult getResult()
+	{
+		return result;
+	}
+
 
 	@Override
 	public void stop()

@@ -1,5 +1,7 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
+import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
+
 import java.security.interfaces.RSAPublicKey;
 
 /**
@@ -9,6 +11,8 @@ import java.security.interfaces.RSAPublicKey;
 public interface RSAAttack
 {
 	void begin(RSAPublicKey certificate);
+
+	AttackResult getResult();
 
 	void stop();
 }
