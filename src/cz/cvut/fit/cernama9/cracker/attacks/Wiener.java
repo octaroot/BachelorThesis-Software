@@ -1,7 +1,6 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
-import cz.cvut.fit.cernama9.cracker.RSAAttack;
-import cz.cvut.fit.cernama9.cracker.SimpleRSAPublicKey;
+import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
@@ -26,9 +25,9 @@ public class Wiener implements RSAAttack
 	{
 		run = true;
 
-		List<BigInteger> quotients = new ArrayList<BigInteger>();
-		List<BigInteger> remainders = new ArrayList<BigInteger>();
-		List<BigInteger> denominators = new ArrayList<BigInteger>();
+		List<BigInteger> quotients = new ArrayList<>();
+		List<BigInteger> remainders = new ArrayList<>();
+		List<BigInteger> denominators = new ArrayList<>();
 
 		long startTime = System.nanoTime();
 

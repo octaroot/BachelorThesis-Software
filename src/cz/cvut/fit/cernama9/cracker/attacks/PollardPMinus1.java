@@ -1,7 +1,7 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
-import cz.cvut.fit.cernama9.cracker.RSAAttack;
-import cz.cvut.fit.cernama9.cracker.SimpleRSAPublicKey;
+import com.google.common.math.BigIntegerMath;
+import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
@@ -14,19 +14,6 @@ import java.util.Random;
 public class PollardPMinus1 implements RSAAttack
 {
 	private volatile boolean run;
-
-	public static BigInteger factorial(BigInteger n)
-	{
-		BigInteger result = BigInteger.ONE;
-
-		while (!n.equals(BigInteger.ZERO))
-		{
-			result = result.multiply(n);
-			n = n.subtract(BigInteger.ONE);
-		}
-
-		return result;
-	}
 
 	public void test(BigInteger p, BigInteger q)
 	{
@@ -42,8 +29,9 @@ public class PollardPMinus1 implements RSAAttack
 
 		System.out.println("Testing n = " + n);
 
-		final BigInteger b = BigInteger.valueOf(19),
-				k = factorial(b),
+		final int b = 19;
+
+		final BigInteger k = BigIntegerMath.factorial(b),
 				kMinus1 = k.subtract(BigInteger.ONE);
 
 		System.out.println("Smoothness bound = " + b);
