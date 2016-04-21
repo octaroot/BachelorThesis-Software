@@ -9,26 +9,9 @@ import java.security.interfaces.RSAPublicKey;
  */
 public class SimpleRSAPublicKey implements RSAPublicKey
 {
-	private BigInteger p, q, e;
+	private BigInteger n, e;
 
 	public SimpleRSAPublicKey(BigInteger p, BigInteger q, BigInteger e)
-	{
-		this (p,q);
-
-		if (e.signum() < 1 || e.equals(BigInteger.ONE))
-			throw new IllegalArgumentException("Public exponent e cannot be <= 1");
-
-		BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-
-		if (!e.gcd(phi).equals(BigInteger.ONE))
-			throw new IllegalArgumentException("Public exponent e has no multiplicative inverse (given p,q)");
-
-		this.p = p;
-		this.q = q;
-		this.e = e;
-	}
-
-	public SimpleRSAPublicKey(BigInteger p, BigInteger q)
 	{
 		if (p.signum() < 1 || p.equals(BigInteger.ONE))
 			throw new IllegalArgumentException("Prime p cannot be <= 1");
@@ -36,9 +19,34 @@ public class SimpleRSAPublicKey implements RSAPublicKey
 		if (q.signum() < 1 || q.equals(BigInteger.ONE))
 			throw new IllegalArgumentException("Prime q cannot be <= 1");
 
-		this.p = p;
-		this.q = q;
-		this.e = null;
+		if (e != null)
+		{
+			if (e.signum() < 1 || e.equals(BigInteger.ONE))
+				throw new IllegalArgumentException("Public exponent e cannot be <= 1");
+
+			BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
+
+			if (!e.gcd(phi).equals(BigInteger.ONE))
+				throw new IllegalArgumentException("Public exponent e has no multiplicative inverse (given p,q)");
+		}
+
+		this.n = p.multiply(q);
+		this.e = e;
+	}
+
+	public SimpleRSAPublicKey(BigInteger n, BigInteger e)
+	{
+		if (n.signum() < 1 || n.equals(BigInteger.ONE))
+			throw new IllegalArgumentException("Modulus n cannot be <= 1");
+
+		if (e != null)
+		{
+			if (e.signum() < 1 || e.equals(BigInteger.ONE))
+				throw new IllegalArgumentException("Public exponent e cannot be <= 1");
+		}
+
+		this.e = e;
+		this.n = n;
 	}
 
 	@Override
@@ -68,6 +76,6 @@ public class SimpleRSAPublicKey implements RSAPublicKey
 	@Override
 	public BigInteger getModulus()
 	{
-		return p.multiply(q);
+		return n;
 	}
 }

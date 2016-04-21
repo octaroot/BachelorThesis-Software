@@ -24,7 +24,7 @@ public class SimpleRSAPublicKeyTest
 		BigInteger p = new BigInteger("5"),
 				q = new BigInteger("3");
 
-		SimpleRSAPublicKey publicKey = new SimpleRSAPublicKey(p, q);
+		SimpleRSAPublicKey publicKey = new SimpleRSAPublicKey(p, q, null);
 		assertEquals(publicKey.getModulus(), p.multiply(q));
 		assertNull(publicKey.getPublicExponent());
 	}
@@ -51,11 +51,12 @@ public class SimpleRSAPublicKeyTest
 
 		exception.expect(IllegalArgumentException.class);
 
-		new SimpleRSAPublicKey(p, negativeNumber);
-		new SimpleRSAPublicKey(negativeNumber, p);
+		new SimpleRSAPublicKey(p, negativeNumber, null);
+		new SimpleRSAPublicKey(negativeNumber, p, null);
+		new SimpleRSAPublicKey(p, BigInteger.ONE, null);
+		new SimpleRSAPublicKey(BigInteger.ONE, p, null);
+
 		new SimpleRSAPublicKey(p, q, negativeNumber);
-		new SimpleRSAPublicKey(p, BigInteger.ONE);
-		new SimpleRSAPublicKey(BigInteger.ONE, p);
 		new SimpleRSAPublicKey(p, q, BigInteger.ONE);
 
 		//gcd=1 triggered

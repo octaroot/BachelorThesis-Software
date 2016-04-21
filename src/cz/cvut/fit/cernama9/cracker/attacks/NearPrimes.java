@@ -14,29 +14,24 @@ import java.security.interfaces.RSAPublicKey;
  */
 public class NearPrimes implements RSAAttack
 {
-	private volatile boolean run;
 	private AttackResult result = null;
 
 	public void test(BigInteger p, BigInteger q)
 	{
-		begin(new SimpleRSAPublicKey(p, q));
+		run(new SimpleRSAPublicKey(p, q, null));
 	}
 
 	@Override
-	public void begin(RSAPublicKey certificate)
+	public void run(RSAPublicKey publicKey)
 	{
-		run = true;
-		final BigInteger n = certificate.getModulus();
+		result = null;
+
+		final BigInteger n = publicKey.getModulus();
 		BigInteger guess = BigIntegerMath.sqrt(n, RoundingMode.CEILING), temp;
 
-		System.out.println("Testing n ~ " + n.bitLength() + " bits");
-
 		temp = guess.pow(2).subtract(n);
-		System.out.println("Starting at " + guess + " and counting down");
 
-		long startTime = System.nanoTime();
-
-		while (run)
+		while (!Thread.currentThread().isInterrupted())
 		{
 			if (BigIntegerMath.sqrt(temp, RoundingMode.DOWN).pow(2).equals(temp))
 			{
@@ -44,15 +39,11 @@ public class NearPrimes implements RSAAttack
 						p = guess.subtract(b),
 						q = guess.add(b);
 				result = new AttackResult(p, q);
-				System.out.println("Success!");
-				run = false;
+				return;
 			}
 			guess = guess.add(BigInteger.ONE);
 			temp = guess.pow(2).subtract(n);
 		}
-
-		long estimatedTime = System.nanoTime() - startTime;
-		System.out.println("Cracking took us " + estimatedTime / 1e9 + "s");
 
 	}
 
@@ -60,11 +51,5 @@ public class NearPrimes implements RSAAttack
 	public AttackResult getResult()
 	{
 		return result;
-	}
-
-	@Override
-	public void stop()
-	{
-		run = false;
 	}
 }

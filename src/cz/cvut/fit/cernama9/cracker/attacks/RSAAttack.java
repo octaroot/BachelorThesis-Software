@@ -10,9 +10,15 @@ import java.security.interfaces.RSAPublicKey;
  */
 public interface RSAAttack
 {
-	void begin(RSAPublicKey certificate);
+	/**
+	 * Begin the attack on a RSA public key specified
+	 * @param publicKey The target publicKey
+	 */
+	void run(RSAPublicKey publicKey);
 
+	/**
+	 * Can be used for testing
+	 * @return The result of the (successful) attack
+	 */
 	AttackResult getResult();
-
-	void stop();
 }

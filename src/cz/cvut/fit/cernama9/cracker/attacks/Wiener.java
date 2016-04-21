@@ -14,40 +14,37 @@ import java.util.List;
  */
 public class Wiener implements RSAAttack
 {
-	private volatile boolean run;
 	private AttackResult result = null;
 
 	public void test(SimpleRSAPublicKey pkey)
 	{
-		begin(pkey);
+		run(pkey);
 	}
 
 	@Override
-	public void begin(RSAPublicKey certificate)
+	public void run(RSAPublicKey publicKey)
 	{
-		run = true;
+		result = null;
 
 		List<BigInteger> quotients = new ArrayList<>();
 		List<BigInteger> remainders = new ArrayList<>();
 		List<BigInteger> denominators = new ArrayList<>();
 
-		long startTime = System.nanoTime();
-
 		int i = 2;
 
 		//step 1 (i=0)
-		BigInteger[] tempFraction = certificate.getPublicExponent().divideAndRemainder(certificate.getModulus());
+		BigInteger[] tempFraction = publicKey.getPublicExponent().divideAndRemainder(publicKey.getModulus());
 		quotients.add(tempFraction[0]);
 		remainders.add(tempFraction[1]);
 		denominators.add(BigInteger.ONE);
 
 		//step 2 (i=1)
-		tempFraction = certificate.getModulus().divideAndRemainder(remainders.get(0));
+		tempFraction = publicKey.getModulus().divideAndRemainder(remainders.get(0));
 		quotients.add(tempFraction[0]);
 		remainders.add(tempFraction[1]);
 		denominators.add(quotients.get(1));
 
-		while (run)
+		while (!Thread.currentThread().isInterrupted())
 		{
 			if (remainders.get(i - 1).equals(BigInteger.ZERO))
 			{
@@ -65,24 +62,21 @@ public class Wiener implements RSAAttack
 
 		final BigInteger message = BigInteger.valueOf(3);
 
-		while (run && i < denominators.size())
+		while (!Thread.currentThread().isInterrupted() && i < denominators.size())
 		{
-			final BigInteger cipher = message.modPow(certificate.getPublicExponent(), certificate.getModulus()),
-					decipher = cipher.modPow(denominators.get(i), certificate.getModulus());
+			final BigInteger cipher = message.modPow(publicKey.getPublicExponent(), publicKey.getModulus()),
+					decipher = cipher.modPow(denominators.get(i), publicKey.getModulus());
 
 			if (message.equals(decipher))
 			{
 				//System.out.println("lol 0wn3d");
 				//System.out.println("d=" + denominators.get(i));
 				result = new AttackResult(denominators.get(i));
-				run = false;
+				return;
 			}
 
 			i++;
 		}
-
-		long estimatedTime = System.nanoTime() - startTime;
-		System.out.println("Cracking took us " + estimatedTime / 1e9 + "s");
 
 	}
 
@@ -90,12 +84,5 @@ public class Wiener implements RSAAttack
 	public AttackResult getResult()
 	{
 		return result;
-	}
-
-
-	@Override
-	public void stop()
-	{
-		run = false;
 	}
 }

@@ -45,13 +45,13 @@ public class CertificateDownloader
 				"`subject_dn` TEXT NOT NULL," +
 				"`valid_from` TEXT NOT NULL," +
 				"`valid_to` TEXT NOT NULL," +
+				"`processed` INTEGER NOT NULL DEFAULT 0," +
 				" PRIMARY KEY(id_certificate)" +
 				");" +
 				"CREATE TABLE `scan` (" +
 				"`domain` TEXT NOT NULL UNIQUE," +
 				"`error` TEXT," +
 				"`id_certificate` INTEGER," +
-				"`processed` INTEGER NOT NULL DEFAULT 0," +
 				"PRIMARY KEY(domain)," +
 				"FOREIGN KEY(`id_certificate`) REFERENCES certificate(id_certificate)" +
 				");" +
@@ -218,6 +218,9 @@ public class CertificateDownloader
 		//for development, in production this will be replaced with program arguments (stdin/input file)
 		final String[] domainsToCheck = {"wrong.host.badssl.com",
 		                                 "martincernac.cz",
+		                                 "wiener.martincernac.cz",
+		                                 "pollard.martincernac.cz",
+		                                 "near-primes.martincernac.cz",
 		                                 "toools.martincernac.cz",
 		                                 "cvut.cz",
 		                                 "cvut.cz",
