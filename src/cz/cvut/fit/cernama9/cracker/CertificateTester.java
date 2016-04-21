@@ -151,14 +151,13 @@ public class CertificateTester
 							try
 							{
 								saveAttackResult(sqlite, attack.getResult(), attack.getClass().getName(), id_certificate);
-								System.out.print("!");
 							}
 							catch (SQLException ignored) {}
 						}
 					});
 				}
 
-				executorService.awaitTermination(2, TimeUnit.SECONDS);
+				executorService.awaitTermination(3, TimeUnit.MINUTES);
 				executorService.shutdownNow();
 
 				System.out.println();
