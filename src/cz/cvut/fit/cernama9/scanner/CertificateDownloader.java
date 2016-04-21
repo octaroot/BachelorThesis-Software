@@ -371,7 +371,7 @@ public class CertificateDownloader
 	 */
 	public static CertificateResponse processDomain(String domain) throws MalformedURLException
 	{
-		URL domainName = new URL(domain);
+		final URL domainName = new URL(domain);
 		Certificate cert;
 		try
 		{
@@ -418,8 +418,9 @@ public class CertificateDownloader
 	public static X509Certificate downloadCertificate(URL domain, boolean verifyCertificate)
 			throws CertificateException, IOException, KeyManagementException, NoSuchAlgorithmException
 	{
-		HttpsURLConnection connection = (HttpsURLConnection) (verifyCertificate ? generateSafeConnection(domain) : generateUnsafeConnection(domain));
-
+		HttpsURLConnection connection = verifyCertificate ? generateSafeConnection(domain) : generateUnsafeConnection(domain);
+		connection.setConnectTimeout(5000);
+		connection.setReadTimeout(10000);
 		Certificate[] certificates;
 		//HttpsURLConnection provides full certificate validation, we only need to handle the exceptions
 		try
