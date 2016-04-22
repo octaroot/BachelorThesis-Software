@@ -5,6 +5,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,6 +19,9 @@ import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 /**
  * @author Martin Černáč (cernama9@fit.cvut.cz)
@@ -25,6 +29,11 @@ import java.util.TimeZone;
  */
 public class CertificateDownloader
 {
+	/**
+	 * Sets the thread pool-size & the number of workers
+	 */
+	private static int maxWorkers = 10;
+
 	/**
 	 * Sets-up the tables this program will need to store scan results and downlaoded certificates.
 	 *
@@ -215,6 +224,12 @@ public class CertificateDownloader
 			System.exit(1);
 		}
 
+		//poresit ignorovani domen az do posledni oscanovane
+		//nevim, jestli se da spolehnout na nejaky select, snad ano
+		//az tu bude reader, tak to pujde
+		final boolean continueFromLastTime = true;
+		final String lastScannedDomain = null;
+
 		//for development, in production this will be replaced with program arguments (stdin/input file)
 		final String[] domainsToCheck = {"wrong.host.badssl.com",
 		                                 "martincernac.cz",
@@ -247,14 +262,14 @@ public class CertificateDownloader
 
 		try
 		{
-			sqlite = setupDatabase(args[0]);
+			sqlite = continueFromLastTime ? checkDatabase(args[0]) : setupDatabase(args[0]);
 		}
 		catch (ClassNotFoundException ignored)
 		{
 			System.err.println("Unable to locate SQLite library");
 			System.exit(1);
 		}
-		catch (FileAlreadyExistsException ex)
+		catch (FileAlreadyExistsException | FileNotFoundException ex)
 		{
 			System.err.println(ex.getMessage());
 			System.exit(1);
@@ -267,91 +282,110 @@ public class CertificateDownloader
 
 		System.out.println("Database init completed. Starting the scan");
 
-		PreparedStatement newCertificateRecord = null, newScanRecord = null;
-
 		try
 		{
-			newCertificateRecord = sqlite.prepareStatement("INSERT OR IGNORE INTO certificate (id_certificate, public_exponent, modulus, modulus_bits, signature_algo, issuer_dn, subject_dn, valid_from, valid_to) VALUES(?,?,?,?,?,?,?,?,?)");
-			newScanRecord = sqlite.prepareStatement("INSERT OR IGNORE INTO scan (domain, error, id_certificate) VALUES (?,?,?)");
+			final PreparedStatement newCertificateRecord = sqlite.prepareStatement("INSERT OR IGNORE INTO certificate (id_certificate, public_exponent, modulus, modulus_bits, signature_algo, issuer_dn, subject_dn, valid_from, valid_to) VALUES(?,?,?,?,?,?,?,?,?)"),
+					newScanRecord = sqlite.prepareStatement("INSERT OR IGNORE INTO scan (domain, error, id_certificate) VALUES (?,?,?)");
+
+			final ExecutorService executorService = Executors.newFixedThreadPool(maxWorkers);
+			final Semaphore semaphore = new Semaphore(maxWorkers);
+
+			for (final String domain : domainsToCheck)
+			{
+				try
+				{
+					semaphore.acquire();
+				}
+				catch (InterruptedException ignored) { }
+				executorService.submit((Runnable) () -> {
+					final CertificateResponse response;
+
+					System.out.println(domain);
+					try
+					{
+						response = processDomain("https://" + domain);
+					}
+					catch (MalformedURLException ignored)
+					{
+						System.err.println("Unable to scan domain \"" + domain + "\"");
+						semaphore.release();
+						return;
+					}
+
+					if (response.getCertificate() != null)
+					{
+						try
+						{
+							prepareCertificateStatement(newCertificateRecord, response, df).execute();
+						}
+						catch (NoSuchAlgorithmException ignored)
+						{
+							System.err.println("Unable to calculate the thumbprint of the certificate (SHA-1)");
+							semaphore.release();
+							return;
+						}
+						catch (CertificateEncodingException ignored)
+						{
+							System.err.println("Unable to calculate the thumbprint of the certificate, because the certificate is corrupt");
+							semaphore.release();
+							return;
+						}
+						catch (SQLException ex)
+						{
+							System.err.println("Unable to save certificate data, SQL error: " + ex.getMessage());
+							semaphore.release();
+							return;
+						}
+					}
+
+					try
+					{
+						prepareScanStatement(newScanRecord, response, domain).execute();
+					}
+					catch (NoSuchAlgorithmException ignored)
+					{
+						System.err.println("Unable to calculate the thumbprint of the certificate (SHA-1)");
+						semaphore.release();
+						return;
+					}
+					catch (CertificateEncodingException ignored)
+					{
+						System.err.println("Unable to calculate the thumbprint of the certificate, because the certificate is corrupt");
+						semaphore.release();
+						return;
+					}
+					catch (SQLException ex)
+					{
+						System.err.println("Unable to save scan data, SQL error: " + ex.getMessage());
+						semaphore.release();
+						return;
+					}
+
+					semaphore.release();
+				});
+
+			}
+
+			System.out.println("=== All tasks submitted, awaiting termination ===");
+
+			while (semaphore.availablePermits() != maxWorkers)
+			{
+				Thread.sleep(1000);
+			}
+
+			System.out.println("Terminating");
+
+			executorService.shutdownNow();
+
+			System.out.println("Shutdown complete");
+
 		}
 		catch (SQLException ex)
 		{
 			System.err.println("Unable to setup prepared statements, SQL error: " + ex.getMessage());
 			System.exit(1);
 		}
-
-		for (final String domain : domainsToCheck)
-		{
-			final CertificateResponse response;
-
-			System.out.print(domain + " ... ");
-
-			try
-			{
-				response = processDomain("https://" + domain);
-			}
-			catch (MalformedURLException ignored)
-			{
-				System.err.println("Unable to scan domain \"" + domain + "\"");
-				continue;
-			}
-
-			if (response.getCertificate() != null)
-			{
-				try
-				{
-					prepareCertificateStatement(newCertificateRecord, response, df).execute();
-				}
-				catch (NoSuchAlgorithmException ignored)
-				{
-					System.err.println("Unable to calculate the thumbprint of the certificate (SHA-1)");
-					continue;
-				}
-				catch (CertificateEncodingException ignored)
-				{
-					System.err.println("Unable to calculate the thumbprint of the certificate, because the certificate is corrupt");
-					continue;
-				}
-				catch (SQLException ex)
-				{
-					System.err.println("Unable to save certificate data, SQL error: " + ex.getMessage());
-					try
-					{
-						sqlite.close();
-					}
-					catch (SQLException ignored) { }
-					System.exit(1);
-				}
-			}
-
-			try
-			{
-				prepareScanStatement(newScanRecord, response, domain).execute();
-			}
-			catch (NoSuchAlgorithmException ignored)
-			{
-				System.err.println("Unable to calculate the thumbprint of the certificate (SHA-1)");
-				continue;
-			}
-			catch (CertificateEncodingException ignored)
-			{
-				System.err.println("Unable to calculate the thumbprint of the certificate, because the certificate is corrupt");
-				continue;
-			}
-			catch (SQLException ex)
-			{
-				System.err.println("Unable to save scan data, SQL error: " + ex.getMessage());
-				try
-				{
-					sqlite.close();
-				}
-				catch (SQLException ignored) { }
-				System.exit(1);
-			}
-
-			System.out.println();
-
-		}
+		catch (InterruptedException ignored) {}
 
 		System.out.println("Scan finished. Total number of domains scanned: " + domainsToCheck.length + ". Closing database connection.");
 
@@ -557,5 +591,49 @@ public class CertificateDownloader
 	public static HttpsURLConnection generateSafeConnection(URL domain) throws IOException
 	{
 		return (HttpsURLConnection) domain.openConnection();
+	}
+
+	private static Connection checkDatabase(String filename)
+			throws SQLException, ClassNotFoundException, FileNotFoundException
+	{
+		//Check whether we may overwrite something
+		final File dbFile = new File(filename);
+
+		//In case we do, stop program execution and inform the user
+		if (!dbFile.exists() || dbFile.isDirectory() || !dbFile.canRead())
+		{
+			throw new FileNotFoundException("File \"" + filename + "\" not found or unreadable.");
+		}
+
+		//Setup SQLite connection
+		Class.forName("org.sqlite.JDBC");
+		Connection sqlite = DriverManager.getConnection("jdbc:sqlite:" + filename);
+
+		//Inform the user
+		System.out.println("Opened database successfully");
+
+		try
+		{
+			Statement checkTableExistence = sqlite.createStatement();
+			for (String tableName : new String[]{"attack",
+			                                     "certificate",
+			                                     "scan"})
+			{
+				final ResultSet resultSet = checkTableExistence.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "';");
+				if (!resultSet.next())
+				{
+					throw new IllegalArgumentException("The database file provided is missing required tables. Please check that it is indeed a database file created by the CertificateDownloader program");
+				}
+			}
+		}
+		catch (SQLException ex)
+		{
+			System.err.println("Unable to check database tables.");
+			throw ex;
+		}
+
+		System.out.println("Successfully checked the tables");
+
+		return sqlite;
 	}
 }
