@@ -6,6 +6,7 @@ import cz.cvut.fit.cernama9.cracker.attacks.RSAAttack;
 import cz.cvut.fit.cernama9.cracker.attacks.Wiener;
 import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
 import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
+import org.apache.commons.cli.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,9 +25,9 @@ public class CertificateTester
 	/**
 	 * Prints the correct usage of this program
 	 */
-	private static void printCorrectUsage()
-	{
-		System.err.println("Correct usage: java CertificateTester <sqlite-intput-output-file>");
+	private static void printCorrectUsage(Options options) {
+		HelpFormatter helpFormatter = new HelpFormatter();
+		helpFormatter.printHelp("CertificateTester", options, true);
 	}
 
 	private static void setRecordAsProcessed(Connection connection, String id_certificate) throws SQLException
@@ -79,40 +80,55 @@ public class CertificateTester
 
 	public static void main(String[] args)
 	{
-		if (args.length != 1)
-		{
-			printCorrectUsage();
+		Options options = new Options();
+		options.addOption(Option.builder("data")
+				.hasArg()
+				.required()
+				.desc("data file location (SQLite database) - the output file of CertificateDownloader.")
+				.argName("file")
+				.build());
+
+
+		final CommandLineParser parser = new DefaultParser();
+		final CommandLine cmd;
+
+		try {
+			cmd = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			printCorrectUsage(options);
 			System.exit(1);
+			return;
 		}
 
-		Connection sqliteTemp = null;
 		final Connection sqlite;
 
 		try
 		{
-			sqliteTemp = setupDatabase(args[0]);
+			sqlite = setupDatabase(cmd.getOptionValue("data"));
 		}
 		catch (ClassNotFoundException ignored)
 		{
 			System.err.println("Unable to locate SQLite library");
 			System.exit(1);
+			return;
 		}
 		catch (FileNotFoundException ex)
 		{
 			System.err.println(ex.getMessage());
 			System.exit(1);
+			return;
 		}
 		catch (SQLException ex)
 		{
 			System.err.println("Unable to setup the database, SQL error: " + ex.getMessage());
 			System.exit(1);
+			return;
 		}
-
-		sqlite = sqliteTemp;
 
 		try
 		{
-			Statement inputData = sqlite.createStatement();
+			final Statement inputData = sqlite.createStatement();
 
 			final ResultSet resultSet = inputData.executeQuery("SELECT c.id_certificate, c.modulus, c.public_exponent FROM certificate c WHERE c.processed = 0 AND c.modulus_bits IS NOT NULL");
 
@@ -122,7 +138,7 @@ public class CertificateTester
 
 			while (resultSet.next())
 			{
-				ExecutorService executorService = Executors.newFixedThreadPool(attacks.length); // number of threads
+				final ExecutorService executorService = Executors.newFixedThreadPool(attacks.length); // number of threads
 
 				final String id_certificate = resultSet.getString("id_certificate");
 				final BigInteger n = new BigInteger(resultSet.getString("modulus")),
