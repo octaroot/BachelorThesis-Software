@@ -1,17 +1,10 @@
 package cz.cvut.fit.cernama9.scanner;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.apache.commons.cli.*;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.io.*;
-import java.net.ConnectException;
-import java.net.InterfaceAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.nio.file.FileAlreadyExistsException;
 import java.security.KeyManagementException;
 import java.security.MessageDigest;
@@ -51,6 +44,7 @@ public class CertificateDownloader {
 				"`subject_dn` TEXT NOT NULL," +
 				"`valid_from` TEXT NOT NULL," +
 				"`valid_to` TEXT NOT NULL," +
+				"`self_signed` INTEGER NOT NULL," +
 				"`processed` INTEGER NOT NULL DEFAULT 0," +
 				" PRIMARY KEY(id_certificate)" +
 				");" +
@@ -88,7 +82,7 @@ public class CertificateDownloader {
 	                                         CertificateResponse response,
 	                                         DateFormat df)
 			throws CertificateEncodingException, NoSuchAlgorithmException, SQLException {
-		final PreparedStatement statement = sqlite.prepareStatement("INSERT OR IGNORE INTO certificate (id_certificate, public_exponent, modulus, modulus_bits, signature_algo, issuer_dn, subject_dn, valid_from, valid_to) VALUES(?,?,?,?,?,?,?,?,?)");
+		final PreparedStatement statement = sqlite.prepareStatement("INSERT OR IGNORE INTO certificate (id_certificate, public_exponent, modulus, modulus_bits, signature_algo, issuer_dn, subject_dn, valid_from, valid_to, self_signed) VALUES(?,?,?,?,?,?,?,?,?,?)");
 		final X509Certificate certificate = response.getCertificate();
 		final String thumbprint = getThumbPrint(certificate);
 
@@ -111,6 +105,16 @@ public class CertificateDownloader {
 		statement.setString(7, certificate.getSubjectDN().toString());
 		statement.setString(8, df.format(certificate.getNotBefore()));
 		statement.setString(9, df.format(certificate.getNotAfter()));
+
+		boolean selfSigned = false;
+		try
+		{
+			certificate.verify(certificate.getPublicKey());
+			selfSigned = true;
+		}
+		catch (Exception ignored) {}
+
+		statement.setInt(10, selfSigned ? 1 : 0);
 
 		statement.execute();
 	}
@@ -217,7 +221,7 @@ public class CertificateDownloader {
 				.build());
 		options.addOption(Option.builder("threads")
 				.hasArg()
-				.desc("number of threads/workers to use for scanning. Defaults to 30.30")
+				.desc("number of threads/workers to use for scanning. Defaults to 50.")
 				.argName("n")
 				.build());
 		options.addOption(Option.builder("continue")
@@ -254,7 +258,7 @@ public class CertificateDownloader {
 		}
 		else
 		{
-			maxWorkers = 30;
+			maxWorkers = 50;
 		}
 
 		if (cmd.hasOption("input")) {
@@ -419,7 +423,6 @@ public class CertificateDownloader {
 		} catch (Exception ex) {
 			//The certificate didn't validate, or there was another issue
 
-			//We are only interested in the original cause of failure
 			while (ex.getCause() != null && !ex.getCause().equals(ex)) {
 				ex = (Exception) ex.getCause();
 			}
@@ -431,7 +434,7 @@ public class CertificateDownloader {
 				return new CertificateResponse((X509Certificate) cert, ex);
 			} catch (Exception ex2) {
 				//If we can't even download the certificate with no checks, return the exception alone
-				return new CertificateResponse(ex);
+				return new CertificateResponse(new Exception(ex + ";" + ex2));
 			}
 		}
 	}
@@ -454,7 +457,70 @@ public class CertificateDownloader {
 		Certificate[] certificates;
 		//HttpsURLConnection provides full certificate validation, we only need to handle the exceptions
 		try {
-			connection.connect();
+			try
+			{
+				connection.connect();
+			}
+			catch (SSLProtocolException ex)
+			{
+				if (ex.getMessage().equals("handshake alert:  unrecognized_name"))
+				{
+					//server has broken SNI support (probably an Apache instance missing ServerName attribute)
+					//we don't consider this error fatal (following Mozilla Firefox's behavior)
+					connection = verifyCertificate ? generateSafeConnection(domain) : generateUnsafeConnection(domain);
+					connection.setConnectTimeout(5000);
+					connection.setReadTimeout(10000);
+					connection.setSSLSocketFactory(new SSLSocketFactory() {
+						public String[] getDefaultCipherSuites()
+						{
+							return ((SSLSocketFactory) SSLSocketFactory.getDefault()).getDefaultCipherSuites();
+						}
+
+						@Override
+						public String[] getSupportedCipherSuites()
+						{
+							return ((SSLSocketFactory) SSLSocketFactory.getDefault()).getSupportedCipherSuites();
+						}
+
+						@Override
+						public Socket createSocket(Socket socket, String s, int i, boolean b) throws IOException
+						{
+							return ((SSLSocketFactory) SSLSocketFactory.getDefault()).createSocket(socket, null, i, b);
+						}
+
+						@Override
+						public Socket createSocket(String s, int i) throws IOException, UnknownHostException
+						{
+							return null;
+						}
+
+						@Override
+						public Socket createSocket(String s, int i, InetAddress inetAddress, int i1)
+								throws IOException, UnknownHostException
+						{
+							return SSLSocketFactory.getDefault().createSocket("", i, inetAddress, i1);
+						}
+
+						@Override
+						public Socket createSocket(InetAddress inetAddress, int i) throws IOException
+						{
+							return SSLSocketFactory.getDefault().createSocket(inetAddress, i);
+						}
+
+						@Override
+						public Socket createSocket(InetAddress inetAddress, int i, InetAddress inetAddress1, int i1)
+								throws IOException
+						{
+							return SSLSocketFactory.getDefault().createSocket(inetAddress, i, inetAddress1, i1);
+						}
+					});
+					connection.connect();
+				}
+				else
+				{
+					throw ex;
+				}
+			}
 			certificates = connection.getServerCertificates();
 		} finally {
 			//In any case, we should always close the connection
