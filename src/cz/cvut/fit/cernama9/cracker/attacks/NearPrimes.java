@@ -16,9 +16,9 @@ public class NearPrimes implements RSAAttack
 {
 	private AttackResult result = null;
 
-	public void test(BigInteger p, BigInteger q)
+	public void test(RSAPublicKey publicKey)
 	{
-		run(new SimpleRSAPublicKey(p, q, null));
+		run(publicKey);
 	}
 
 	@Override

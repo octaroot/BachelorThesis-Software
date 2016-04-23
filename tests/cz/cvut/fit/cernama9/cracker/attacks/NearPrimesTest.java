@@ -1,6 +1,7 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
 import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
+import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -21,12 +22,7 @@ public class NearPrimesTest
 		BigInteger p = new BigInteger("160830782557826086255408586193761971121442118372472145500301652795033947227766219916749120960126418797758852156198232377201612482273170099423459869540494384165050088833965082562383206437322563648927080789814938427704305067225148235449446755732287855514474365565009970367161518797526617298237257651887629848979");
 		BigInteger q = new BigInteger("160830782557826086255408586193761971121442118372472145500301652795033947227766219916749120960126418797758852156198232377201612482273170099423459869540523384165050088833965082562383206437322563648927080789814938427704305067225148235449446755732287855514474365565009970367161518797526617298237257651887629849699");
 
-		System.out.println(p.toString(2));
-		System.out.println(q.toString(2));
-
-		System.out.println("done generating data");
-
-		np.test(p, q);
+		np.test(new SimpleRSAPublicKey(p, q, null));
 		AttackResult result = np.getResult();
 
 		assertNotNull(result);
@@ -44,7 +40,7 @@ public class NearPrimesTest
 		BigInteger p = BigInteger.valueOf(7),
 				q = BigInteger.valueOf(11);
 
-		np.test(p, q);
+		np.test(new SimpleRSAPublicKey(p, q, null));
 		AttackResult result = np.getResult();
 
 		assertNotNull(result);
@@ -59,7 +55,7 @@ public class NearPrimesTest
 		NearPrimes np = new NearPrimes();
 		BigInteger p = BigInteger.valueOf(17);
 
-		np.test(p,p);
+		np.test(new SimpleRSAPublicKey(p, p, null));
 		AttackResult result = np.getResult();
 
 		assertNotNull(result);

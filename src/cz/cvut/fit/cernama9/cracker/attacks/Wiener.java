@@ -16,9 +16,9 @@ public class Wiener implements RSAAttack
 {
 	private AttackResult result = null;
 
-	public void test(SimpleRSAPublicKey pkey)
+	public void test(RSAPublicKey publicKey)
 	{
-		run(pkey);
+		run(publicKey);
 	}
 
 	@Override
@@ -69,8 +69,6 @@ public class Wiener implements RSAAttack
 
 			if (message.equals(decipher))
 			{
-				//System.out.println("lol 0wn3d");
-				//System.out.println("d=" + denominators.get(i));
 				result = new AttackResult(denominators.get(i));
 				return;
 			}

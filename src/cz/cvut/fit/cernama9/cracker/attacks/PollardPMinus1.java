@@ -14,17 +14,15 @@ public class PollardPMinus1 implements RSAAttack
 {
 	private       AttackResult result;
 
-	public void test(BigInteger p, BigInteger q)
+	public void test(RSAPublicKey publicKey)
 	{
-		run(new SimpleRSAPublicKey(p, q, null));
+		run(publicKey);
 	}
 
 	@Override
 	public void run(RSAPublicKey publicKey)
 	{
 		result = null;
-		final long startTime = System.nanoTime();
-
 		final BigInteger n = publicKey.getModulus();
 
 		int b = 2;
@@ -39,12 +37,13 @@ public class PollardPMinus1 implements RSAAttack
 			if (d.equals(BigInteger.ONE))
 			{
 				b++;
-				//if (b % 100 == 0) System.out.println("b = " + b);
 				k = k.multiply(BigInteger.valueOf(b));
 				continue;
 			}
 			else if (d.equals(n))
 			{
+				b = 2;
+				k = BigInteger.valueOf(2);
 				a = a.add(BigInteger.ONE);
 				continue;
 			}

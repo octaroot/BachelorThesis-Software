@@ -17,6 +17,12 @@ public interface RSAAttack
 	void run(RSAPublicKey publicKey);
 
 	/**
+	 * Begin the attack on a RSA public key specified
+	 * @param publicKey The target publicKey
+	 */
+	void test(RSAPublicKey publicKey);
+
+	/**
 	 * Can be used for testing
 	 * @return The result of the (successful) attack
 	 */

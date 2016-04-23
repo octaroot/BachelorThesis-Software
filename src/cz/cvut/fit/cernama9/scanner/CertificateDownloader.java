@@ -289,6 +289,10 @@ public class CertificateDownloader {
 		System.setProperty("javax.net.ssl.trustStore", keystorePath.getPath());
 		System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
 
+		//accept all certificates
+		System.setProperty("jdk.certpath.disabledAlgorithms", "");
+		System.setProperty("jdk.tls.disabledAlgorithms", "");
+
 		//Create SQLite connection
 		final Connection sqlite;
 
@@ -434,7 +438,7 @@ public class CertificateDownloader {
 				return new CertificateResponse((X509Certificate) cert, ex);
 			} catch (Exception ex2) {
 				//If we can't even download the certificate with no checks, return the exception alone
-				return new CertificateResponse(new Exception(ex + ";" + ex2));
+				return new CertificateResponse(ex);
 			}
 		}
 	}
