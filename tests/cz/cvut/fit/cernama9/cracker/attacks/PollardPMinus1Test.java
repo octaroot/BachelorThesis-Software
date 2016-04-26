@@ -70,6 +70,27 @@ public class PollardPMinus1Test
 	}
 
 	@Test
+	public void testIncrementingNumberA()
+	{
+		/**
+		 * I first had to find a number N, that could be written in the form N=2^k - 1
+		 * and in addition, it consisted of two distinct primes, which could not be written
+		 * in the same form (2^k - 1). For example 2047 (2^11 - 1) = 23 * 89
+		 */
+		PollardPMinus1 pollard = new PollardPMinus1();
+		BigInteger p = new BigInteger("23"),
+				q = new BigInteger("89");
+
+		pollard.test(new SimpleRSAPublicKey(p, q, null));
+		AttackResult result = pollard.getResult();
+
+		assertNotNull(result);
+		assertEquals(p, result.getP());
+		assertEquals(q, result.getQ());
+		assertNull(result.getD());
+	}
+
+	@Test
 	public void mediumExample()
 	{
 		PollardPMinus1 pollard = new PollardPMinus1();
