@@ -1,12 +1,14 @@
 package cz.cvut.fit.cernama9.cracker.attacks;
 
 import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
-import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.ZERO;
 
 /**
  * @author Martin Černáč (cernama9@fit.cvut.cz)
@@ -36,7 +38,7 @@ public class Wiener implements RSAAttack
 		BigInteger[] tempFraction = publicKey.getPublicExponent().divideAndRemainder(publicKey.getModulus());
 		quotients.add(tempFraction[0]);
 		remainders.add(tempFraction[1]);
-		denominators.add(BigInteger.ONE);
+		denominators.add(ONE);
 
 		//step 2 (i=1)
 		tempFraction = publicKey.getModulus().divideAndRemainder(remainders.get(0));
@@ -46,7 +48,7 @@ public class Wiener implements RSAAttack
 
 		while (!Thread.currentThread().isInterrupted())
 		{
-			if (remainders.get(i - 1).equals(BigInteger.ZERO))
+			if (remainders.get(i - 1).equals(ZERO))
 			{
 				break;
 			}
@@ -79,8 +81,5 @@ public class Wiener implements RSAAttack
 	}
 
 	@Override
-	public AttackResult getResult()
-	{
-		return result;
-	}
+	public AttackResult getResult() { return result; }
 }

@@ -56,9 +56,26 @@ public class PollardPMinus1Test
 	@Test
 	public void smallExample()
 	{
+		//dve 40-bitova cisla
 		PollardPMinus1 pollard = new PollardPMinus1();
-		BigInteger p = new BigInteger("3234903317"),
-				q = new BigInteger("1419263");
+		BigInteger p = new BigInteger("756077174459"),
+				q = new BigInteger("741030129527");
+
+		pollard.test(new SimpleRSAPublicKey(p, q, null));
+		AttackResult result = pollard.getResult();
+
+		assertNotNull(result);
+		assertEquals(p, result.getP());
+		assertEquals(q, result.getQ());
+		assertNull(result.getD());
+	}
+
+	@Test
+	public void tinyExample()
+	{
+		PollardPMinus1 pollard = new PollardPMinus1();
+		BigInteger p = new BigInteger("178481"),
+				q = new BigInteger("47");
 
 		pollard.test(new SimpleRSAPublicKey(p, q, null));
 		AttackResult result = pollard.getResult();

@@ -6,7 +6,7 @@ import java.security.cert.X509Certificate;
  * @author Martin Černáč (cernama9@fit.cvut.cz)
  * @since 19.4.16.
  */
-public class CertificateResponse
+class CertificateResponse
 {
 	private X509Certificate certificate;
 	private Exception       exception;
@@ -29,12 +29,12 @@ public class CertificateResponse
 		this.certificate = null;
 	}
 
-	public X509Certificate getCertificate()
+	X509Certificate getCertificate()
 	{
 		return certificate;
 	}
 
-	public Exception getException()
+	Exception getException()
 	{
 		return exception;
 	}

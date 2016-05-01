@@ -41,8 +41,8 @@ public class WienerTest
 
 		BigInteger p = BigInteger.valueOf(31),
 				q = BigInteger.valueOf(41),
-				e = BigInteger.valueOf(11),
-				d = BigInteger.valueOf(1091);
+				e = BigInteger.valueOf(11);
+				//d = BigInteger.valueOf(1091);
 
 		wiener.test(new SimpleRSAPublicKey(p, q, e));
 

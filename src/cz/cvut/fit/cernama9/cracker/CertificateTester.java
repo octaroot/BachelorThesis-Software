@@ -160,7 +160,7 @@ public class CertificateTester
 
 				for (RSAAttack attack : attacks)
 				{
-					executorService.submit((Runnable) () -> {
+					executorService.submit(() -> {
 						attack.run(publicKey);
 						if (attack.getResult() != null)
 						{

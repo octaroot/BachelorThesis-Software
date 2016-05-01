@@ -2,11 +2,12 @@ package cz.cvut.fit.cernama9.cracker.attacks;
 
 import com.google.common.math.BigIntegerMath;
 import cz.cvut.fit.cernama9.cracker.utilities.AttackResult;
-import cz.cvut.fit.cernama9.cracker.utilities.SimpleRSAPublicKey;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.security.interfaces.RSAPublicKey;
+
+import static java.math.BigInteger.ONE;
 
 /**
  * @author Martin Černáč (cernama9@fit.cvut.cz)
@@ -41,7 +42,7 @@ public class NearPrimes implements RSAAttack
 				result = new AttackResult(p, q);
 				return;
 			}
-			guess = guess.add(BigInteger.ONE);
+			guess = guess.add(ONE);
 			temp = guess.pow(2).subtract(n);
 		}
 

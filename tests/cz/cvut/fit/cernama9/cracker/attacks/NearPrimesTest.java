@@ -34,6 +34,22 @@ public class NearPrimesTest
 	}
 
 	@Test
+	public void tinyExample()
+	{
+		NearPrimes np = new NearPrimes();
+		BigInteger q = new BigInteger("756077174459"),
+				p = new BigInteger("741030129527");
+
+		np.test(new SimpleRSAPublicKey(p, q, null));
+		AttackResult result = np.getResult();
+
+		assertNotNull(result);
+		assertEquals(p, result.getP());
+		assertEquals(q, result.getQ());
+		assertNull(result.getD());
+	}
+
+	@Test
 	public void extremelyNearPrimes()
 	{
 		NearPrimes np = new NearPrimes();
