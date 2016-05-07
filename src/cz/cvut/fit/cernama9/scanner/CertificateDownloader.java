@@ -254,7 +254,7 @@ public class CertificateDownloader
 	private static void printCorrectUsage(Options options)
 	{
 		HelpFormatter helpFormatter = new HelpFormatter();
-		helpFormatter.printHelp("CertificateDownloader", options, true);
+		helpFormatter.printHelp("java -jar CertificateDownloader.jar", options, true);
 	}
 
 	/**
@@ -300,6 +300,8 @@ public class CertificateDownloader
 		{
 			maxWorkers = 50;
 		}
+
+		System.out.println("Using " + maxWorkers + " workers");
 
 		if (cmd.hasOption("input"))
 		{
@@ -368,6 +370,8 @@ public class CertificateDownloader
 
 		System.out.println("Database init completed. Starting the scan");
 
+		final long startTime = System.currentTimeMillis();
+
 		try
 		{
 			final ExecutorService executorService = Executors.newFixedThreadPool(maxWorkers);
@@ -395,7 +399,7 @@ public class CertificateDownloader
 				executorService.submit(() -> {
 					final CertificateResponse response;
 
-					System.out.println(domain);
+					//System.out.println(domain);
 					try
 					{
 						response = processDomain("https://" + domain);
@@ -485,7 +489,7 @@ public class CertificateDownloader
 			return;
 		}
 
-		System.out.println("Scan finished. Closing database connection.");
+		System.out.println("Scan finished. Closing database connection. Scan took " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 
 		try
 		{

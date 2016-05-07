@@ -27,7 +27,7 @@ public class CertificateTester
 	 */
 	private static void printCorrectUsage(Options options) {
 		HelpFormatter helpFormatter = new HelpFormatter();
-		helpFormatter.printHelp("CertificateTester", options, true);
+		helpFormatter.printHelp("java -jar CertificateTester.jar", options, true);
 	}
 
 	private static void setRecordAsProcessed(Connection connection, String id_certificate) throws SQLException
@@ -126,6 +126,8 @@ public class CertificateTester
 			return;
 		}
 
+		System.out.println("Database init completed. Starting parameter quality testing");
+
 		try
 		{
 			final Statement inputData = sqlite.createStatement();
@@ -146,7 +148,7 @@ public class CertificateTester
 
 				final SimpleRSAPublicKey publicKey;
 
-				System.out.print(id_certificate + ": ");
+				//System.out.print(id_certificate + ": ");
 
 				try
 				{
