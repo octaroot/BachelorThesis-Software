@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="bpthesis" default="all">
+  
+  
+  <property file="bpthesis.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.yarb/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.egg"/>
+    <include name="*.jar"/>
+    <include name="*.ear"/>
+    <include name="*.apk"/>
+    <include name="*.swc"/>
+    <include name="*.war"/>
+    <include name="*.ane"/>
+    <include name="*.zip"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.commons-cli-1.3.1.classpath">
+    <pathelement location="${basedir}/libraries/commons-cli-1.3.1.jar"/>
+  </path>
+  
+  <path id="library.guava-19.0.classpath">
+    <pathelement location="${basedir}/libraries/guava-19.0.jar"/>
+  </path>
+  
+  <path id="library.sqlite-jdbc-3.8.11.2.classpath">
+    <pathelement location="${basedir}/libraries/sqlite-jdbc-3.8.11.2.jar"/>
+  </path>
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module BPThesis -->
+  
+  <dirname property="module.bpthesis.basedir" file="${ant.file}"/>
+  
+  
+  
+  <property name="compiler.args.bpthesis" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="bpthesis.output.dir" value="${module.bpthesis.basedir}/out/production/BPThesis"/>
+  <property name="bpthesis.testoutput.dir" value="${module.bpthesis.basedir}/out/test/BPThesis"/>
+  
+  <path id="bpthesis.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="bpthesis.module.production.classpath">
+    <path refid="library.sqlite-jdbc-3.8.11.2.classpath"/>
+    <path refid="library.guava-19.0.classpath"/>
+    <path refid="library.commons-cli-1.3.1.classpath"/>
+  </path>
+  
+  <path id="bpthesis.runtime.production.module.classpath">
+    <pathelement location="${bpthesis.output.dir}"/>
+    <path refid="library.sqlite-jdbc-3.8.11.2.classpath"/>
+    <path refid="library.guava-19.0.classpath"/>
+    <path refid="library.commons-cli-1.3.1.classpath"/>
+  </path>
+  
+  <path id="bpthesis.module.classpath">
+    <pathelement location="${bpthesis.output.dir}"/>
+    <path refid="library.sqlite-jdbc-3.8.11.2.classpath"/>
+    <path refid="library.guava-19.0.classpath"/>
+    <pathelement location="${basedir}/libraries/hamcrest-core-1.3.jar"/>
+    <pathelement location="${basedir}/libraries/junit-4.12.jar"/>
+    <path refid="library.commons-cli-1.3.1.classpath"/>
+  </path>
+  
+  <path id="bpthesis.runtime.module.classpath">
+    <pathelement location="${bpthesis.testoutput.dir}"/>
+    <pathelement location="${bpthesis.output.dir}"/>
+    <path refid="library.sqlite-jdbc-3.8.11.2.classpath"/>
+    <path refid="library.guava-19.0.classpath"/>
+    <pathelement location="${basedir}/libraries/hamcrest-core-1.3.jar"/>
+    <pathelement location="${basedir}/libraries/junit-4.12.jar"/>
+    <path refid="library.commons-cli-1.3.1.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.bpthesis">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.bpthesis">
+    <patternset refid="excluded.from.module.bpthesis"/>
+  </patternset>
+  
+  <path id="bpthesis.module.sourcepath">
+    <dirset dir="${module.bpthesis.basedir}">
+      <include name="src"/>
+      <include name="resources"/>
+    </dirset>
+  </path>
+  
+  <path id="bpthesis.module.test.sourcepath">
+    <dirset dir="${module.bpthesis.basedir}">
+      <include name="tests"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.bpthesis" depends="compile.module.bpthesis.production,compile.module.bpthesis.tests" description="Compile module BPThesis"/>
+  
+  <target name="compile.module.bpthesis.production" description="Compile module BPThesis; production classes">
+    <mkdir dir="${bpthesis.output.dir}"/>
+    <javac includeantruntime="false" destdir="${bpthesis.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.bpthesis}"/>
+      <bootclasspath refid="bpthesis.module.bootclasspath"/>
+      <classpath refid="bpthesis.module.production.classpath"/>
+      <src refid="bpthesis.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.bpthesis"/>
+    </javac>
+    
+    <copy todir="${bpthesis.output.dir}">
+      <fileset dir="${module.bpthesis.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.bpthesis.basedir}/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.bpthesis.tests" depends="compile.module.bpthesis.production" description="compile module BPThesis; test classes" unless="skip.tests">
+    <mkdir dir="${bpthesis.testoutput.dir}"/>
+    <javac includeantruntime="false" destdir="${bpthesis.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.bpthesis}"/>
+      <bootclasspath refid="bpthesis.module.bootclasspath"/>
+      <classpath refid="bpthesis.module.classpath"/>
+      <src refid="bpthesis.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.bpthesis"/>
+    </javac>
+    
+    <copy todir="${bpthesis.testoutput.dir}">
+      <fileset dir="${module.bpthesis.basedir}/tests">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.bpthesis" description="cleanup module">
+    <delete dir="${bpthesis.output.dir}"/>
+    <delete dir="${bpthesis.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.bpthesis" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.bpthesis" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.downloader:jar" value="${basedir}/out/artifacts/"/>
+    <property name="artifact.output.tester:jar" value="${basedir}/out/artifacts/"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.CertificateDownloader.jar" value="${artifacts.temp.dir}/CertificateDownloader.jar"/>
+    <property name="temp.jar.path.CertificateTester.jar" value="${artifacts.temp.dir}/CertificateTester.jar"/>
+  </target>
+  
+  <target name="artifact.downloader:jar" depends="init.artifacts, compile.module.bpthesis" description="Build &#39;Downloader:jar&#39; artifact">
+    <property name="artifact.temp.output.downloader:jar" value="${artifacts.temp.dir}/Downloader_jar"/>
+    <mkdir dir="${artifact.temp.output.downloader:jar}"/>
+    <jar destfile="${temp.jar.path.CertificateDownloader.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+ 	<manifest>
+        <attribute name="Main-Class" value="cz.cvut.fit.cernama9.scanner.CertificateDownloader" />
+    </manifest>
+      <zipfileset dir="${bpthesis.output.dir}"/>
+      <zipfileset src="${basedir}/libraries/guava-19.0.jar"/>
+      <zipfileset src="${basedir}/libraries/commons-cli-1.3.1.jar"/>
+      <zipfileset src="${basedir}/libraries/sqlite-jdbc-3.8.11.2.jar"/>
+    </jar>
+    <copy file="${temp.jar.path.CertificateDownloader.jar}" tofile="${artifact.temp.output.downloader:jar}/CertificateDownloader.jar"/>
+  </target>
+  
+  <target name="artifact.tester:jar" depends="init.artifacts, compile.module.bpthesis" description="Build &#39;tester:jar&#39; artifact">
+    <property name="artifact.temp.output.tester:jar" value="${artifacts.temp.dir}/Tester_jar"/>
+    <mkdir dir="${artifact.temp.output.tester:jar}"/>
+    <jar destfile="${temp.jar.path.CertificateTester.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+ 	<manifest>
+        <attribute name="Main-Class" value="cz.cvut.fit.cernama9.cracker.CertificateTester" />
+    </manifest>
+      <zipfileset dir="${bpthesis.output.dir}"/>
+      <zipfileset src="${basedir}/libraries/guava-19.0.jar"/>
+      <zipfileset src="${basedir}/libraries/commons-cli-1.3.1.jar"/>
+      <zipfileset src="${basedir}/libraries/sqlite-jdbc-3.8.11.2.jar"/>
+    </jar>
+    <copy file="${temp.jar.path.CertificateTester.jar}" tofile="${artifact.temp.output.tester:jar}/CertificateTester.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.downloader:jar, artifact.tester:jar" description="Build all artifacts">
+    <mkdir dir="${artifact.output.downloader:jar}"/>
+    <copy todir="${artifact.output.downloader:jar}">
+      <fileset dir="${artifact.temp.output.downloader:jar}"/>
+      <fileset dir="${artifact.temp.output.tester:jar}"/>
+    </copy>
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>
