@@ -5,7 +5,10 @@ import org.apache.commons.cli.*;
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.*;
+import java.nio.file.CopyOption;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.KeyManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -327,12 +330,32 @@ public class CertificateDownloader
 		}
 
 		//Get the path to bundled keystore containing CA root certificates from Mozilla Firefox 45
-		final URL keystorePath = CertificateDownloader.class.getResource("/keystore.jks");
+		URL keystorePath = CertificateDownloader.class.getResource("/keystore.jks");
 
 		//Prepare a date format for SQLite usage
 		final TimeZone tz = TimeZone.getTimeZone("CEST");
 		final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
 		df.setTimeZone(tz);
+
+		if (keystorePath.getProtocol().equals("jar"))
+		{
+			//System properties are not able to load files from a JAR archive, we need to extract the keystore file
+			try
+			{
+				File tempFile = File.createTempFile("cernama9_", "_keystore");
+				tempFile.deleteOnExit();
+				InputStream link = CertificateDownloader.class.getResourceAsStream("/keystore.jks");
+				Files.copy(link, tempFile.getAbsoluteFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+				keystorePath = tempFile.toURI().toURL();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+				System.err.println("Unable to extract the root certificate truststore file.");
+				System.exit(1);
+				return;
+			}
+		}
 
 		//Setup bundled truststore
 		System.setProperty("javax.net.ssl.trustStore", keystorePath.getPath());
