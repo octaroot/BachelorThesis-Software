@@ -190,7 +190,7 @@ public class CertificateTester
 				executorService.awaitTermination(attackTimeout, TimeUnit.SECONDS);
 				executorService.shutdownNow();
 
-				System.out.println();
+				//System.out.println();
 
 				setRecordAsProcessed(sqlite, resultSet.getString("id_certificate"));
 			}
