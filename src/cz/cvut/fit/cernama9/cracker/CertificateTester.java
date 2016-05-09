@@ -87,6 +87,7 @@ public class CertificateTester
 				.desc("data file location (SQLite database) - the output file of CertificateDownloader.")
 				.argName("file")
 				.build());
+		options.addOption(Option.builder("timeout").hasArg().desc("time limit for processing each certificate in seconds. If not specified, defaults to a value of 600 seconds.").argName("n").build());
 
 
 		final CommandLineParser parser = new DefaultParser();
@@ -99,6 +100,17 @@ public class CertificateTester
 			printCorrectUsage(options);
 			System.exit(1);
 			return;
+		}
+		final int attackTimeout;
+
+		if (cmd.hasOption("timeout"))
+		{
+			attackTimeout = Integer.parseInt(cmd.getOptionValue("timeout"));
+			if (attackTimeout < 1) throw new IllegalArgumentException("The certificate processing timeout cannot be lower than 1.");
+		}
+		else
+		{
+			attackTimeout = 600;
 		}
 
 		final Connection sqlite;
@@ -175,7 +187,7 @@ public class CertificateTester
 					});
 				}
 
-				executorService.awaitTermination(3, TimeUnit.MINUTES);
+				executorService.awaitTermination(attackTimeout, TimeUnit.SECONDS);
 				executorService.shutdownNow();
 
 				System.out.println();
