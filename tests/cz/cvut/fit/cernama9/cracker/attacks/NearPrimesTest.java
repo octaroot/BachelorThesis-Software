@@ -15,6 +15,22 @@ import static org.junit.Assert.*;
 public class NearPrimesTest
 {
 	@Test
+	public void tooHard()
+	{
+		NearPrimes np = new NearPrimes();
+		BigInteger p = new BigInteger("171017241702401758957566440165192497397837085781468974906656228171708806865046273719136247588381313303779599369895703499879199368289230911907261715169587617543971853216629794977961438304114410582105219291511618914647566662890652466627878885517239996866771039517589816408083785249048105753274562460546923415533");
+		BigInteger q = p.add(BigInteger.TEN.pow(158)).multiply(BigInteger.valueOf(2)).nextProbablePrime();
+
+		np.test(new SimpleRSAPublicKey(p, q, null));
+		AttackResult result = np.getResult();
+
+		assertNotNull(result);
+		assertEquals(p, result.getP());
+		assertEquals(q, result.getQ());
+		assertNull(result.getD());
+	}
+
+	@Test
 	public void twoKExample()
 	{
 		//lisi se cca v polovine (498. MSB)
